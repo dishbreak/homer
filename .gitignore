@@ -1,0 +1,8 @@
+archive/*
+threads/*
+
+*.bak
+*.tmp
+*.swp
+
+.eventlog
