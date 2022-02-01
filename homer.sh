@@ -20,6 +20,11 @@ Commands:
 EOF
 )
 
+if [ $# -eq 0 ]; then
+    (>&2 echo "$usage")
+    exit
+fi
+
 command=$1
 shift
 
@@ -36,7 +41,7 @@ function do_init() {
 function add_event() {
     if [ $# -gt 1 ]; then
         (>&2 echo "too many args")
-        return 
+        return
     fi
 
     printf "$(date '+%Y-%m-%d')\t%s\n" "$1" >> .eventlog
@@ -57,7 +62,7 @@ function open_thread() {
         return
     fi
 
-    mkdir "$thread_dir" 
+    mkdir "$thread_dir"
     touch "$thread_dir/eventlog"
 }
 
@@ -76,7 +81,7 @@ $(cat -n .threads.tmp)
 
 # These are the following **unlinked* events.
 # To link the event to a thread, replace N with its number
-# Don't remove the following line. 
+# Don't remove the following line.
 ##~~~
 $(grep -v "^#" .eventlog | uniq | sort -r | sed "s/^/N\t/")
 EOF
@@ -91,7 +96,7 @@ EOF
 
         thread=$(sed -n "${code}p" <.threads.tmp)
         declare -p thread
-        if [ "$thread" = "" ]; then 
+        if [ "$thread" = "" ]; then
             continue
         fi
 
