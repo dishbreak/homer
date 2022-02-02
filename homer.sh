@@ -44,7 +44,7 @@ function add_event() {
         return
     fi
 
-    printf "$(date '+%Y-%m-%d')\t%s\n" "$1" >> .eventlog
+    printf "$(date '+%Y-%m-%d')\t%s\n" "$1" | sed "s!/!_!" >> .eventlog
     (uniq .eventlog | sort -r) > .eventlog.swp
     mv .eventlog .eventlog.bak
     mv .eventlog.swp .eventlog
@@ -83,7 +83,7 @@ $(cat -n .threads.tmp)
 # To link the event to a thread, replace N with its number
 # Don't remove the following line.
 ##~~~
-$(grep -v "^#" .eventlog | uniq | sort -r | sed "s/^/N\t/")
+$(grep -v "^#" .eventlog | uniq | sort -r | sed "s!^!N	!")
 EOF
     "${EDITOR:-vi}" .review.tmp
     sed -ne '/^##~~~$/,$ p' <.review.tmp | sed '1d' > .events.tmp
