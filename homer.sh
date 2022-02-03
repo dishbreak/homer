@@ -2,13 +2,15 @@
 
 set -e
 
+exec_name=$(basename "$0")
+
 usage=$(cat <<EOF
-$0 - tell your story.
+homer- tell your story.
 
 Usage:
-    $0 add EVENT_TEXT
-    $0 create-thread THREAD_NAME
-    $0 list-events
+    $exec_name add EVENT_TEXT
+    $exec_name open-thread THREAD_NAME
+    $exec_name list-events
 
 Commands:
     init - sets up homer in the working directory
@@ -19,6 +21,9 @@ Commands:
 
 EOF
 )
+
+homer_editor=${EDITOR:-vi}
+homer_home=${HOMER_HOME:-${HOME}/.homer}
 
 if [ $# -eq 0 ]; then
     (>&2 echo "$usage")
@@ -31,9 +36,9 @@ shift
 function do_init() {
     (which sed >/dev/null) || (>&2 echo "sed is not on your path. install sed and try again!"; exit 1)
 
-    [ -f .eventlog ] || touch .eventlog
-    [ -d archive ] || mkdir archive
-    [ -d threads ] || mkdir threads
+    [ -f "${homer_home}/.eventlog" ] || touch "${homer_home}/.eventlog"
+    [ -d "${homer_home}/archive" ] || mkdir "${homer_home}/archive"
+    [ -d "${homer_home}/threads" ] || mkdir "${homer_home}/threads"
 
     echo "initialized!"
 }
@@ -85,7 +90,7 @@ $(cat -n .threads.tmp)
 ##~~~
 $(grep -v "^#" .eventlog | uniq | sort -r | sed "s!^!N	!")
 EOF
-    "${EDITOR:-vi}" .review.tmp
+    "$homer_editor" .review.tmp
     sed -ne '/^##~~~$/,$ p' <.review.tmp | sed '1d' > .events.tmp
     rm .review.tmp
     while read -r event; do
@@ -111,23 +116,27 @@ EOF
     rm .threads.tmp
 }
 
-case "$command" in
-    init)
-        do_init
-        ;;
-    add)
-        add_event "$1"
-        ;;
-    open-thread)
-        open_thread "$1"
-        ;;
-    list-events)
-        list_events
-        ;;
-    review-events)
-        review_events
-        ;;
-    *)
-        ( >&2 echo "not yet implemented")
-esac
+[ -d "${homer_home}" ] || mkdir "${homer_home}"
+(
+    cd "${homer_home}"
+    case "$command" in
+        init)
+            do_init
+            ;;
+        add)
+            add_event "$1"
+            ;;
+        open-thread)
+            open_thread "$1"
+            ;;
+        list-events)
+            list_events
+            ;;
+        review-events)
+            review_events
+            ;;
+        *)
+            ( >&2 echo "not yet implemented")
+    esac
+)
 
