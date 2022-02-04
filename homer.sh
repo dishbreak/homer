@@ -18,6 +18,8 @@ Commands:
     open-thread - creates and opens a new thread for collecting events.
     list-events - show all events not linked to a log.
     review - conduct a review of all open threads.
+    rescue - fix an event log or thread
+    tidy - sort and collate all files
 
 EOF
 )
@@ -78,6 +80,32 @@ function list_events() {
     echo "found $event_count event(s)"
 }
 
+function rescue() {
+    if [ "$1" = "" ]; then
+        "$homer_editor" .eventlog
+        return
+    fi
+    local thread_file="threads/$1/eventlog"
+    [ -f "$thread_file" ] || (>&2 echo "failed to find thread '$1'"; exit 2)
+
+    "$homer_editor"  || (>&2 echo "failed to edit thread '$1'")
+}
+
+function tidy_thread_file() {
+    local thread_file="$1/eventlog"
+    [ -f "$thread_file" ] || (>&2 echo "failed to find thread '$1'"; exit 2)
+
+    uniq < "$thread_file" | sort -r > "${thread_file}.swp"
+    mv "$thread_file" "${thread_file}.bak"
+    mv "${thread_file}.swp" "$thread_file"
+}
+
+function tidy_files() {
+    find threads -type d -mindepth 1 | while read -r f; do
+        tidy_thread_file "$f"
+    done
+}
+
 function review_events() {
     find ./threads -type d -mindepth 1 | sort | sed "s|^\./threads/||" > .threads.tmp
     cat <<EOF > .review.tmp
@@ -100,7 +128,6 @@ EOF
         fi
 
         thread=$(sed -n "${code}p" <.threads.tmp)
-        declare -p thread
         if [ "$thread" = "" ]; then
             continue
         fi
@@ -134,6 +161,12 @@ EOF
             ;;
         review-events)
             review_events
+            ;;
+        rescue)
+            rescue "$1"
+            ;;
+        tidy)
+            tidy_files
             ;;
         *)
             ( >&2 echo "not yet implemented")
