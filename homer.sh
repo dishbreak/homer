@@ -113,7 +113,8 @@ function review_events() {
 $(cat -n .threads.tmp)
 
 # These are the following **unlinked* events.
-# To link the event to a thread, replace N with its number
+# To link the event to a thread, replace N with its number.
+# Don't edit event text, use h rescue for that.
 # Don't remove the following line.
 ##~~~
 $(grep -v "^#" .eventlog | uniq | sort -r | sed "s!^!N	!")
@@ -141,6 +142,7 @@ EOF
     done < .events.tmp
     rm .events.tmp
     rm .threads.tmp
+    tidy_files
 }
 
 [ -d "${homer_home}" ] || mkdir "${homer_home}"
